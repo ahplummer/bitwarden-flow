@@ -66,6 +66,21 @@ A `.env` file is a plaintext secret sitting on disk. It lingers after you're don
 
    `bws-access-token` is the default keychain service name `bwset` looks for. Override it with `BWS_KEYCHAIN_SERVICE` if you want to keep multiple tokens (e.g. one per project).
 
+   **Over SSH?** If you're setting this up on a Mac you only ever reach remotely, either of the commands above can fail with:
+
+   ```
+   security: SecKeychainItemModifyContent: User interaction is not allowed.
+   security: SecKeychainItemCreateFromContent (<default>): User interaction is not allowed.
+   ```
+
+   This isn't an ACL/trust problem — it's that the login keychain is locked, and macOS can't show its usual unlock prompt because an SSH session has no GUI/WindowServer session attached. Unlock it directly first, which is a plain CLI password prompt, not a GUI dialog:
+
+   ```sh
+   security unlock-keychain ~/Library/Keychains/login.keychain-db
+   ```
+
+   Then retry the `add-generic-password` command. A box you only ever access over SSH (no console or Screen Sharing login) may re-lock its keychain between sessions, so you may need to run `unlock-keychain` again each time before `bwset`.
+
 3. Source the functions from your `~/.zshrc` or `~/.bashrc`:
 
    ```sh
