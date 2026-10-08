@@ -99,6 +99,12 @@ bwset LINEAR_API_KEY DB_PASS GH_TOKEN
 bwset LINEAR_API_KEY NOT_A_REAL_SECRET
 # Set LINEAR_API_KEY; could not find NOT_A_REAL_SECRET to set
 
+bwshow LINEAR_API_KEY
+# Prints the bare value; nothing is exported
+
+bwshow LINEAR_API_KEY DB_PASS
+# Prints LINEAR_API_KEY=... and DB_PASS=...
+
 bwunset LINEAR_API_KEY
 # Unset LINEAR_API_KEY
 

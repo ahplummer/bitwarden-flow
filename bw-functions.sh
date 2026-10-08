@@ -6,6 +6,7 @@
 #
 #     bwset LINEAR_API_KEY                  # sets LINEAR_API_KEY in the current shell
 #     bwset LINEAR_API_KEY DB_PASS GH_TOKEN # sets all three, one shared secret-list fetch
+#     bwshow LINEAR_API_KEY                 # print the value to the terminal, nothing exported
 #     bwunset LINEAR_API_KEY                # remove it from the current shell
 #     bwunset --all                         # remove every var this session's bwset created
 #
@@ -100,6 +101,42 @@ bwset() {
   fi
 
   [[ ${#missing_vars[@]} -eq 0 ]]
+}
+
+# --- bwshow <SECRET_KEY> [SECRET_KEY ...] -------------------------------------
+# Prints secret values to stdout without exporting anything. One argument prints
+# the bare value; several print KEY=value lines.
+bwshow() {
+  if [[ $# -lt 1 ]]; then
+    printf 'usage: bwshow <SECRET_KEY> [SECRET_KEY ...]\n' >&2
+    return 2
+  fi
+
+  local json
+  json="$(__bws_fetch_list)" || return 1
+
+  local key count value rc=0
+  for key in "$@"; do
+    count="$(jq --arg k "$key" '[.[] | select(.key == $k or .id == $k)] | length' <<<"$json")"
+    if [[ "$count" == "0" ]]; then
+      printf "bwshow: no secret with key or id '%s'\n" "$key" >&2
+      rc=1
+      continue
+    fi
+    if [[ "$count" != "1" ]]; then
+      printf "bwshow: %s secrets share key '%s'; pass the secret ID instead\n" "$count" "$key" >&2
+      rc=1
+      continue
+    fi
+    value="$(jq -r --arg k "$key" 'first(.[] | select(.key == $k or .id == $k)) | .value' <<<"$json")"
+    if [[ $# -eq 1 ]]; then
+      printf '%s\n' "$value"
+    else
+      printf '%s=%s\n' "$key" "$value"
+    fi
+  done
+  unset value json
+  return $rc
 }
 
 # --- bwunset <VAR_NAME> | --all -----------------------------------------------
