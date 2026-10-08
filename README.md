@@ -105,6 +105,12 @@ bwshow LINEAR_API_KEY
 bwshow LINEAR_API_KEY DB_PASS
 # Prints LINEAR_API_KEY=... and DB_PASS=...
 
+bwlist
+# Prints each secret's key and ID, sorted by key; values are not shown
+
+bwlistall
+# Prints every secret as KEY=value, sorted by key; values are shown
+
 bwunset LINEAR_API_KEY
 # Unset LINEAR_API_KEY
 

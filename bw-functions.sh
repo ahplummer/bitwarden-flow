@@ -7,6 +7,8 @@
 #     bwset LINEAR_API_KEY                  # sets LINEAR_API_KEY in the current shell
 #     bwset LINEAR_API_KEY DB_PASS GH_TOKEN # sets all three, one shared secret-list fetch
 #     bwshow LINEAR_API_KEY                 # print the value to the terminal, nothing exported
+#     bwlist                                # list secret keys and IDs (no values)
+#     bwlistall                             # list every secret as KEY=value (prints values)
 #     bwunset LINEAR_API_KEY                # remove it from the current shell
 #     bwunset --all                         # remove every var this session's bwset created
 #
@@ -137,6 +139,24 @@ bwshow() {
   done
   unset value json
   return $rc
+}
+
+# --- bwlist -------------------------------------------------------------------
+# Prints one "KEY<tab>ID" line per secret, sorted by key. Values are never printed.
+bwlist() {
+  local json
+  json="$(__bws_fetch_list)" || return 1
+  jq -r '.[] | "\(.key)\t\(.id)"' <<<"$json" | sort
+  unset json
+}
+
+# --- bwlistall ----------------------------------------------------------------
+# Prints one "KEY=value" line per secret, sorted by key. Prints secret values.
+bwlistall() {
+  local json
+  json="$(__bws_fetch_list)" || return 1
+  jq -r '.[] | "\(.key)=\(.value)"' <<<"$json" | sort
+  unset json
 }
 
 # --- bwunset <VAR_NAME> | --all -----------------------------------------------
